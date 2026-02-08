@@ -1,0 +1,133 @@
+# wikidata-werkzeug
+
+> A fast, parallel Wikidata dump filter written in Rust. Converts and filters RDF (N-Triples) and JSON formats.
+
+## Quick Start
+
+```bash
+cargo build --release
+cargo test
+./target/release/wikidata-werkzeug --help
+```
+
+## Project Structure
+
+```
+src/
+├── main.rs          # CLI entry point, argument parsing (~270 lines)
+├── rdf.rs           # RdfEntity, RdfRegexes, RDF processing (~910 lines)
+├── json.rs          # JSON processing, JSON-to-NTriples conversion (~420 lines)
+├── compression.rs   # Compression/decompression, reader/writer creation (~300 lines)
+├── filter.rs        # EntityFilter, ClaimFilter matching logic (~555 lines)
+├── claim_parser.rs  # Claim expression parser (P31:Q5&P18) (~290 lines)
+└── ntriples.rs      # N-Triples line parser (~200 lines)
+```
+
+## Architecture Overview
+
+### Data Flow
+
+1. **Input**: N-Triples (.nt) or JSON (.json/.ndjson), optionally compressed (.bz2/.gz/.lz4)
+2. **Parse**: Stream-based parsing, entities grouped by subject
+3. **Filter**: Apply claim/language/property/subject filters
+4. **Output**: N-Triples or JSON, optionally compressed (.gz/.lz4)
+
+### Key Types
+
+| Type | File | Purpose |
+|------|------|---------|
+| `Args` | main.rs | CLI arguments (clap) |
+| `RdfEntity` | rdf.rs | Parsed entity with claims, labels, descriptions, aliases |
+| `RdfRegexes` | rdf.rs | Compiled regexes for RDF parsing |
+| `OutputFormat` | rdf.rs | Enum: NTriples or Json |
+| `EntityFilter` | filter.rs | All filter criteria combined |
+| `ClaimFilter` | filter.rs | Enum: HasProperty, PropertyValue, And, Or, Not |
+
+### Core Functions
+
+| Function | File | Purpose |
+|----------|------|---------|
+| `filter_rdf_parallel()` | rdf.rs | Main RDF processing loop with batching |
+| `filter_json_parallel()` | json.rs | Main JSON processing loop with batching |
+| `rdf_entity_to_json()` | rdf.rs | Convert RdfEntity to Wikidata JSON |
+| `json_entity_to_ntriples()` | json.rs | Convert JSON entity to N-Triples |
+| `create_input_reader()` | compression.rs | Create reader with decompression |
+| `create_compressed_writer()` | compression.rs | Create writer with compression |
+| `parse_claim_filter()` | claim_parser.rs | Parse claim expressions |
+| `ClaimFilter::matches()` | filter.rs | Check if claims match filter |
+| `EntityFilter::matches_json()` | filter.rs | Check if JSON entity matches |
+
+## RDF Predicates Recognized
+
+| Predicate | Maps to |
+|-----------|---------|
+| `rdfs:label` | labels |
+| `schema:description` | descriptions |
+| `skos:altLabel` | aliases |
+| `wdt:P*` (prop/direct) | claims |
+| `wikibase:Item/Property` | entity type |
+
+## Testing
+
+```bash
+# Run all tests (58 tests)
+cargo test
+
+# Test with sample data
+./target/release/wikidata-werkzeug --output-format=json --languages de,en language-subset.nt
+```
+
+## Common Tasks
+
+### Add a new filter option
+
+1. Add field to `Args` struct in main.rs
+2. Add field to `EntityFilter` struct in filter.rs
+3. Update `EntityFilter::matches()` and `EntityFilter::matches_json()`
+4. Pass new filter in main() when creating EntityFilter
+
+### Add a new output format
+
+1. Add variant to `OutputFormat` enum in rdf.rs
+2. Implement conversion function (like `rdf_entity_to_json()` in rdf.rs or `json_entity_to_ntriples()` in json.rs)
+3. Update `write_rdf_output_batch()` in rdf.rs for RDF input or `process_json_batch_parallel()` in json.rs for JSON input
+4. Update CLI help text in main.rs
+
+### Modify JSON output structure
+
+Edit `rdf_entity_to_json()` in rdf.rs - it builds the JSON structure using serde_json.
+
+### Add a new compression format
+
+1. Add dependency to Cargo.toml
+2. Add import in compression.rs
+3. Update `create_input_reader()` in compression.rs to detect and decompress
+4. Update `determine_compression()` in compression.rs for auto-detection from extension
+5. Update `create_compressed_writer()` in compression.rs to support new format
+
+## Dependencies
+
+- `clap` - CLI argument parsing
+- `regex` - RDF pattern matching
+- `rayon` - Parallel processing
+- `serde_json` - JSON serialization
+- `bzip2` - bzip2 decompression (input only)
+- `flate2` - gzip compression/decompression
+- `lz4_flex` - LZ4 frame compression/decompression
+
+## Files Reference
+
+| File | Description |
+|------|-------------|
+| README.md | User documentation |
+| CHANGELOG.md | Version history |
+| Cargo.toml | Dependencies and metadata |
+| language-subset.nt | Test data (N-Triples sample) |
+| test-german-kg/*.nt | Additional test data |
+
+## Wikidata Context
+
+- **Entity IDs**: Q-items (Q183=Germany), P-properties (P31=instance of)
+- **Claims**: Property-value pairs on entities
+- **Truthy dumps**: Only "best" statement values, no qualifiers/references
+- **Full dumps**: Complete data including all statement details
