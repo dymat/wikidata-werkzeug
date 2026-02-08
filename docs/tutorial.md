@@ -705,10 +705,4 @@ wikidata-werkzeug --progress input.nt.bz2 > output.nt
 
 ---
 
-## Next Steps
-
-- Explore the [README](../README.md) for complete option reference
-- Check [queries/german-administration.md](../queries/german-administration.md) for German-specific examples
-- Run the extraction script [queries/extract-german-admin.sh](../queries/extract-german-admin.sh)
-
 Happy filtering!
