@@ -29,7 +29,7 @@ struct Args {
     claim: Option<String>,
 
     /// Entity type to filter: item, property, or both
-    #[arg(short = 't', long, default_value = "item")]
+    #[arg(short = 't', long, default_value = "both")]
     r#type: String,
 
     /// Input format: auto, rdf, json (auto-detects from extension/content)
