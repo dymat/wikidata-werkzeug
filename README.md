@@ -34,7 +34,7 @@ wikidata-werkzeug --claim 'P31:Q515' --progress input.nt.bz2 > cities.nt
 | `--claim <CLAIM>` | `-c` | Filter by claim expression (see Claim Syntax below) |
 | `--languages <LANGS>` | `-l` | Filter languages (comma-separated, e.g., `de,en,fr`) |
 | `--language-exact-match` | | Disable subvariant matching (e.g., `de` won't include `de-ch`) |
-| `--type <TYPE>` | `-t` | Entity type: `item`, `property`, or `both` (default: `item`) |
+| `--type <TYPE>` | `-t` | Entity type: `item`, `property`, or `both` (default: `both`) |
 | `--format <FORMAT>` | `-f` | Input format: `auto`, `rdf`, `json` (default: `auto`) |
 | `--output-format <FORMAT>` | `-o` | Output format: `same`, `ntriples`, `json` (default: `same`) |
 | `--output <FILE>` | | Output file (stdout if not provided, compression auto-detected) |
