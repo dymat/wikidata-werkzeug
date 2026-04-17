@@ -32,6 +32,7 @@ wikidata-werkzeug --claim 'P31:Q515' --progress input.nt.bz2 > cities.nt
 | Option | Short | Description |
 |--------|-------|-------------|
 | `--claim <CLAIM>` | `-c` | Filter by claim expression (see Claim Syntax below) |
+| `--claim-file <FILE>` | | Read claim filter expression from file (alternative to `--claim` for long filters) |
 | `--languages <LANGS>` | `-l` | Filter languages (comma-separated, e.g., `de,en,fr`) |
 | `--language-exact-match` | | Disable subvariant matching (e.g., `de` won't include `de-ch`) |
 | `--type <TYPE>` | `-t` | Entity type: `item`, `property`, or `both` (default: `both`) |
@@ -82,9 +83,23 @@ The `--claim` option supports a flexible expression syntax:
 --claim 'P31:Q515&~P576'
 ```
 
-### Precedence
+### Operator Precedence
 
 `|` (OR) has lower precedence than `&` (AND), so `A&B|C` means `(A AND B) OR C`.
+
+### Using a Claim File
+
+For very long filter expressions that exceed the shell's argument length limit, write the expression to a file and use `--claim-file`:
+
+```bash
+# Write a complex filter to a file
+echo 'P31:Q515,Q262166,Q3957,Q532,Q1221156,Q106658,Q22865|P31:Q6256&P17:Q183' > filter.txt
+
+# Use the file instead of --claim
+wikidata-werkzeug --claim-file filter.txt input.nt.bz2 > output.nt
+```
+
+**Note:** `--claim` and `--claim-file` cannot be used together.
 
 ## Filter Attributes (JSON only)
 

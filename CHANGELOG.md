@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`--claim-file` option**: Read claim filter expression from a file instead of the command line, avoiding "Argument list too long" errors for very long filters
 - **RDF to JSON conversion**: The `--output-format=json` option now works for N-Triples input, converting RDF data to Wikidata-compatible JSON format (NDJSON)
 - Labels extraction from `rdfs:label` triples
 - Descriptions extraction from `schema:description` triples

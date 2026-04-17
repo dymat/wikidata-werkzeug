@@ -261,6 +261,24 @@ A | B & C  =  A OR (B AND C)
 
 To combine differently, structure your query accordingly or run multiple passes.
 
+### Using a Claim File
+
+When your filter expression is very long (e.g., hundreds of Q-values), you may hit the shell's argument length limit ("Argument list too long"). Use `--claim-file` to read the filter from a file instead:
+
+```bash
+# Write your filter expression to a file
+cat > filter.txt <<'EOF'
+P31:Q515,Q262166,Q3957,Q532,Q1221156,Q106658,Q22865,Q486972
+EOF
+
+# Use --claim-file instead of --claim
+wikidata-werkzeug --claim-file filter.txt --languages de,en input.nt.bz2 > output.nt
+```
+
+The file should contain a single claim filter expression (the same syntax as `--claim`). Leading and trailing whitespace is ignored.
+
+**Note:** `--claim` and `--claim-file` cannot be used together.
+
 ---
 
 ## Language Filtering
@@ -593,6 +611,15 @@ wikidata-werkzeug \
 
 ### Common Issues
 
+#### "Argument list too long"
+
+Your `--claim` filter expression is too long for the shell. Use `--claim-file` instead:
+
+```bash
+echo 'P31:Q515,Q262166,...' > filter.txt
+wikidata-werkzeug --claim-file filter.txt input.nt.bz2 > output.nt
+```
+
 #### "No output" or empty results
 
 1. **Check your claim syntax**: Use single quotes around claim expressions
@@ -664,6 +691,9 @@ wikidata-werkzeug --version
 ```bash
 # Filter by claim
 wikidata-werkzeug --claim 'P31:Q5' input.nt.bz2 > output.nt
+
+# Filter by claim from file (for long expressions)
+wikidata-werkzeug --claim-file filter.txt input.nt.bz2 > output.nt
 
 # Filter with multiple conditions
 wikidata-werkzeug --claim 'P31:Q5&P27:Q183' input.nt.bz2 > output.nt
