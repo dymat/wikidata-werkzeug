@@ -28,6 +28,10 @@ struct Args {
     #[arg(short, long)]
     claim: Option<String>,
 
+    /// File containing claim filter expression (alternative to --claim for long filters)
+    #[arg(long)]
+    claim_file: Option<String>,
+
     /// Entity type to filter: item, property, or both
     #[arg(short = 't', long, default_value = "both")]
     r#type: String,
@@ -123,10 +127,23 @@ fn main() -> Result<(), FilterError> {
     }
 
     // Build filters
-    let claim_filter = if let Some(ref claim_str) = args.claim {
-        Some(claim_parser::parse_claim_filter(claim_str)?)
-    } else {
-        None
+    let claim_filter = match (&args.claim, &args.claim_file) {
+        (Some(_), Some(_)) => {
+            return Err(FilterError::InvalidClaim(
+                "Cannot specify both --claim and --claim-file".to_string(),
+            ));
+        }
+        (Some(ref claim_str), None) => Some(claim_parser::parse_claim_filter(claim_str)?),
+        (None, Some(ref path)) => {
+            let claim_str = std::fs::read_to_string(path).map_err(|e| FilterError::Io(e))?;
+            let claim_str = claim_str.trim();
+            if claim_str.is_empty() {
+                None
+            } else {
+                Some(claim_parser::parse_claim_filter(claim_str)?)
+            }
+        }
+        (None, None) => None,
     };
 
     let subject_filter: Option<HashSet<String>> = args
